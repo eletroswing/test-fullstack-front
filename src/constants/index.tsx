@@ -1,4 +1,4 @@
-const API_URL = `http://3.23.102.138`;
+const API_URL = `https://api.verbbb.com.br`;
 const GA = `00`;
 const YANDEX_ID = 0;
 
