@@ -38,25 +38,14 @@ export default function AttenoyCard({
   return (
     <div className="w-[100%] sm:w-[25rem] flex flex-col items-center border border-gray-500 rounded-2xl pb-4 mb-8 ">
       {showClicks && (
-         <div className="w-full flex justify-start ml-4 mb-4">
+         <div className="w-full flex justify-start ml-4">
             <div className="flex justify-center items-center px-2 mt-4 border rounded-md">
               <EyeIcon width={20} height={20} />
-              <span className="pl-2">{clicks}</span>
+              <span className="pl-2">{ clicks ? clicks + 1: 1}</span>
             </div>
          </div>
       )}
       <div className="w-full flex justify-center flex-col items-center">
-        <img
-          className=" h-[10rem] aspect-[3/4] object-cover rounded-md"
-          alt="profile"
-          src={imageUrl || "/person.jpeg"}
-        />
-        <div className="flex text-gray-800 mt-4 justify-around">
-          <BookmarkIcon width={16} height={16} />
-          <span className="font-semibold text-xs ps-2">
-            Top Rated Criminal defense lawyer
-          </span>
-        </div>
         <div className="mt-4 flex flex-col items-center w-full">
           <h3 className="font-bold text-xl px-8 text-blue-800 underline cursor-pointer text-center">
             {name || "Stephen Strange"}

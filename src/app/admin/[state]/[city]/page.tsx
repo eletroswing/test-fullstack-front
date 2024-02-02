@@ -10,6 +10,7 @@ import EmbeddedCard from "@/components/embeddedCard";
 import RatingCard from "@/components/ratingCard";
 import Link from "next/link";
 import Script from "next/script";
+import { v4 as uuidV4 } from "uuid";
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,8 +19,12 @@ import constants from "@/constants";
 import showdown from "showdown";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useAuth } from "@clerk/nextjs";
 
 export default function Page() {
+  const { isLoaded, userId, sessionId, getToken } = useAuth();
+
+
   const [data, setData] = useState<any>(null);
   const [editMode, setEditMode] = useState<any>(false);
 
@@ -105,20 +110,22 @@ export default function Page() {
 }
 
   const onHeaderSubmit = (d: any) => {
-    if (d.image != data.header.image) {
+    if (d.image.length != 0) {
+      alertOk();
       getBase64(d.image[0]).then((image) => {
-        fetch(
+        getToken().then(token => fetch(
           `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/header`,
           {
             method: `PATCH`,
             headers: {
               "content-type": "application/json",
+              "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
               image: image,
             }),
           }
-        );
+        ));
 
         let modifiedData = data;
         modifiedData.header.image = image;
@@ -128,18 +135,19 @@ export default function Page() {
     }
 
     if (d.title != data.header.title) {
-      fetch(
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/header`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify({
             title: d.title,
           }),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.header.title = d.title;
@@ -150,18 +158,20 @@ export default function Page() {
 
   const onZipsSubmit = (d: any) => {
     if (d.zips != data.zips) {
-      fetch(
+      alertOk();
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/zips`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify({
             zips: d.zips,
           }),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.zips = d.zips;
@@ -172,18 +182,20 @@ export default function Page() {
 
   const onFaqsSubmit = (d: any) => {
     if (JSON.stringify(d.faq) != JSON.stringify(data.faq)) {
-      fetch(
+      alertOk();
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/faqs`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify({
             faqs: d.faq,
           }),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.faq = d.faq;
@@ -194,16 +206,18 @@ export default function Page() {
 
   const onEmbeddedSubmit = (d: any) => {
     if (JSON.stringify(d.embedded) != JSON.stringify(data.embedded_videos)) {
-      fetch(
+      alertOk();
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/embedded`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify(d),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.embedded_videos = d.embedded;
@@ -219,16 +233,18 @@ export default function Page() {
     });
 
     if (JSON.stringify(d.reviews) != JSON.stringify(data.reviews)) {
-      fetch(
+      alertOk();
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/reviews`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify(d),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.reviews = d.reviews;
@@ -238,20 +254,30 @@ export default function Page() {
   };
 
   const onArticlesSubmit = (d: any) => {
+    alertOk();
     if (JSON.stringify(d.articles) != JSON.stringify(data.articles)) {
-      fetch(
+      var r = d;
+      r.articles = d.articles.map((article: any) => {
+        if(article.slug) return article;
+        return {
+          ...article,
+          slug: uuidV4()
+        }
+      })
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/article`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
-          body: JSON.stringify(d),
+          body: JSON.stringify(r),
         }
-      );
+      ));
 
       let modifiedData = data;
-      modifiedData.articles = d.articles;
+      modifiedData.articles = r.articles;
 
       setData(modifiedData);
     }
@@ -259,16 +285,18 @@ export default function Page() {
 
   const onAttorneySubmit = (d: any) => {
     if (JSON.stringify(d.attorney) != JSON.stringify(data.attorney)) {
-      fetch(
+      alertOk();
+      getToken().then(token => fetch(
         `${constants.API_URL}/private/${routeParams.state}/${routeParams.city}/attorney`,
         {
           method: `PATCH`,
           headers: {
+            "Authorization": `Bearer ${token}`,
             "content-type": "application/json",
           },
           body: JSON.stringify(d),
         }
-      );
+      ));
 
       let modifiedData = data;
       modifiedData.attorney = d.attorney;
@@ -276,6 +304,8 @@ export default function Page() {
       setData(modifiedData);
     }
   };
+
+  const alertOk = () => alert("saved");
 
   return (
     <>
@@ -426,7 +456,7 @@ export default function Page() {
                             type="text"
                             {...embeddedForm.register(`embedded.${index}.url`)}
                             required
-                            placeholder="Url"
+                            placeholder="Iframe code"
                             className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                           />
                         </div>
@@ -488,7 +518,6 @@ export default function Page() {
                           />
                           <input
                             type="number"
-                            step="0.5"
                             min={0}
                             max={5}
                             {...rattingsForm.register(`reviews.${index}.stars`)}
@@ -523,7 +552,6 @@ export default function Page() {
                           onClick={() =>
                             rattingFormArray.append({
                               username: "",
-                              image: "",
                               content: "",
                               stars: "",
                               created_at: "",
@@ -572,14 +600,7 @@ export default function Page() {
                           <textarea
                             {...articlesForm.register(`articles.${index}.text`)}
                             required
-                            placeholder="Text"
-                            className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          />
-                          <input
-                            type="text"
-                            {...articlesForm.register(`articles.${index}.slug`)}
-                            required
-                            placeholder="Slug"
+                            placeholder="Markdown"
                             className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                           />
                           <input
@@ -601,7 +622,6 @@ export default function Page() {
                             articlesFormArray.append({
                               text: "",
                               title: "",
-                              slug: "",
                               created_at: "",
                             })
                           }
@@ -640,6 +660,15 @@ export default function Page() {
                             {...attorneyForm.register(`attorney.${index}.name`)}
                             required
                             placeholder="Name"
+                            className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                          />
+                          <input
+                            type="text"
+                            {...attorneyForm.register(
+                              `attorney.${index}.cid`
+                            )}
+                            required
+                            placeholder="Cid"
                             className="mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                           />
                           <input
@@ -696,7 +725,6 @@ export default function Page() {
                             attorneyFormArray.append({
                               cid: "",
                               name: "",
-                              image: "",
                               email: "",
                               address: "",
                               phone: "",
@@ -863,7 +891,7 @@ export default function Page() {
                             imageUrl={attorney.image}
                             name={attorney.name}
                             phoneNumber={attorney.phone}
-                            location={routeParams.state}
+                            location={attorney.address}
                             email={attorney.email}
                             website={attorney.website}
                             description={attorney.description}
@@ -873,7 +901,7 @@ export default function Page() {
                       );
                     })}
                   </section>
-                  <span className="text-xl pt-10 underline">Ratings</span>
+                  {data.reviews.length != 0 && <span className="text-xl pt-10 underline">Ratings</span>}
                   <section className="overflow-x-auto mb-10">
                     <div className="mt-2 flex w-fit mb-2">
                       {data.reviews.map((reviews: any) => {
@@ -896,7 +924,6 @@ export default function Page() {
                                 day: "2-digit",
                               })}
                               username={reviews.username}
-                              image={reviews.image}
                               content={reviews.content}
                             />
                           </div>
@@ -904,7 +931,7 @@ export default function Page() {
                       })}
                     </div>
                   </section>
-                  <span className="text-xl pt-10 underline">FAQ</span>
+                  {data.faq.length != 0 && <span className="text-xl pt-10 underline">FAQ</span>}
                   <section className="w-full mt-4">
                     {data.faq.map((faq: any) => {
                       return (
@@ -921,9 +948,10 @@ export default function Page() {
                       );
                     })}
                   </section>
-                  <span className="text-xl pt-10 underline">
+                  {data.embedded_videos.length != 0 && <span className="text-xl pt-10 underline">
                     Embedded Videos
-                  </span>
+                  </span>}
+                  
                   <section className="w-full pt-4 flex justify-center flex-col">
                     {data.embedded_videos.map((embedded_video: any) => {
                       return (
@@ -941,7 +969,8 @@ export default function Page() {
                       );
                     })}
                   </section>
-                  <span className="text-xl pt-10 underline">Articles</span>
+                  {data.articles.length != 0 && <span className="text-xl pt-10 underline">Articles</span>}
+
                   <section className="w-full text-center flex flex-col pt-4">
                     {data.articles.map((article: any) => {
                       return (

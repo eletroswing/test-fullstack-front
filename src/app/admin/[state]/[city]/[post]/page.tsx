@@ -113,7 +113,7 @@ export default function Page() {
                   />
                 </svg>
                 <a className="cursor-pointer ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white">
-                  {"Post1"}
+                  {routeParams.post}
                 </a>
               </div>
             </li>
