@@ -1,4 +1,4 @@
-const API_URL = `https://api.verbbb.com.br`;
+const API_URL = `https://api.queroassistir.com`;
 const GA = `00`;
 const YANDEX_ID = 0;
 
