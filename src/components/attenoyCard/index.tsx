@@ -38,7 +38,6 @@ export default function AttenoyCard({
 
   return (
     <div className="w-[100%] sm:w-[25rem] flex flex-col items-center border border-gray-500 rounded-2xl pb-4 mb-8 ">
-      <SignedIn>
       {showClicks && (
          <div className="w-full flex justify-start ml-4">
             <div className="flex justify-center items-center px-2 mt-4 border rounded-md">
@@ -47,7 +46,6 @@ export default function AttenoyCard({
             </div>
          </div>
       )}
-      </SignedIn>
 
       <div className="w-full flex justify-center flex-col items-center">
         <div className="mt-4 flex flex-col items-center w-full">

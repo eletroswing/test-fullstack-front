@@ -270,7 +270,7 @@ export default async function Page(props: any) {
                   return (
                     <div key={JSON.stringify(attorney)}>
                       <AttenoyCard
-                        showClicks={true}
+                        showClicks={false}
                         clicks={attorney.clicks}
                         imageUrl={attorney.image}
                         name={attorney.name}
