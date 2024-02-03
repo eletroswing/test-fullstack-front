@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
-"use client";
+"use server";
 
 import ArticleCard from "@/components/articleCard";
 import AttenoyCard from "@/components/attenoyCard";
@@ -11,28 +11,118 @@ import RatingCard from "@/components/ratingCard";
 import Link from "next/link";
 import Script from "next/script";
 
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import showdown from "showdown";
 import constants from "@/constants";
 
-import showdown from "showdown";
+async function fetchData({ params }: any) {
+  const res = await fetch(
+    `${constants.API_URL}/public/${params.state}/${params.city}`,
+    { next: { revalidate: 5 } }
+  );
 
-export default function Page() {
-  const [data, setData] = useState<any>(null);
-  const routeParams = useParams();
-  
-  const converter = new showdown.Converter()
+  var json = await res.json();
 
-  useEffect(() => {
-    fetch(
-      `${constants.API_URL}/public/${routeParams.state}/${routeParams.city}`
-    )
-      .then((res) => res.json())
-      .then((res) => setData(res));
-  }, []);
+  const faqEntity = json.faq.map((faq: any) => {
+    return {
+      "@type": "Question",
+      name: faq.title,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: `<p>${faq.content}</p>`,
+      },
+    };
+  });
+
+  const articleEntity = json.articles.map((article: any) => {
+    return {
+      headline: article.title,
+      image: "https://queroassistir.com/white.png",
+      datePublished: new Date(article.created_at).toISOString(),
+      dateModified: new Date(article.created_at).toISOString(),
+      author: {
+        "@type": "Person",
+        name: "Jason Portagrande",
+      },
+      url: `https://queroassistir.com/public/${params.state}/${params.city}/${article.slug}`,
+    };
+  });
+
+  const reviewsEntity = {
+    rating:
+      json.reviews.reduce(
+        (total: any, object: any) => total + object.stars,
+        0
+      ) / json.reviews.length,
+    best: 5,
+    worst: 1,
+    count: json.reviews.length,
+  };
+
+  json.faqEntity = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [...faqEntity],
+  };
+
+  json.articlesEntity = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    articles: [...articleEntity],
+  };
+
+  json.reviewsEntity = {
+    "@context": "https://schema.org/",
+    "@type": "EmployerAggregateRating",
+    itemReviewed: {
+      "@type": "Organization",
+      name: "Atternoy Listing",
+      sameAs: `https://queroassistir.com/public/${params.state}/${params.city}`,
+    },
+    ratingValue: reviewsEntity.rating,
+    bestRating: reviewsEntity.best,
+    worstRating: reviewsEntity.worst,
+    ratingCount: reviewsEntity.count,
+  };
+
+  return json;
+}
+
+export default async function Page(props: any) {
+  const data = await fetchData(props);
+  const converter = new showdown.Converter();
 
   return (
     <>
+      {data.faq.length > 0 && (
+        <Script
+          id="structureFaq"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(data.faqEntity),
+          }}
+        />
+      )}
+
+      {data.articles.length > 0 && (
+        <Script
+          id="structureArticle"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(data.articlesEntity),
+          }}
+        />
+      )}
+
+      {data.reviews.length > 0 && (
+        <Script
+          id="structureReviews"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(data.reviewsEntity),
+          }}
+        />
+      )}
+
       {!data ? (
         <div className="w-full flex justify-center pt-20">
           <div role="status">
@@ -89,7 +179,6 @@ export default function Page() {
           ) : (
             <main className="w-full pb-20 px-6 overflow-x-hidden">
               <Script src="https://www.tiktok.com/embed.js" />
-
               <header className="w-full relative">
                 <img
                   className="w-full h-[10rem]"
@@ -108,7 +197,7 @@ export default function Page() {
                   <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                     <li className="inline-flex items-center">
                       <Link
-                        href={`/public/`}
+                        href={`/admin/`}
                         className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
                       >
                         <svg
@@ -125,7 +214,7 @@ export default function Page() {
                     </li>
                     <li>
                       <Link
-                        href={`/public/${routeParams.state}`}
+                        href={`/admin/${props.params.state}`}
                         className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
                       >
                         <svg
@@ -143,7 +232,7 @@ export default function Page() {
                             d="m1 9 4-4-4-4"
                           />
                         </svg>
-                        {routeParams.state || "Home"}
+                        {props.params.state || "Home"}
                       </Link>
                     </li>
                     <li>
@@ -164,7 +253,7 @@ export default function Page() {
                           />
                         </svg>
                         <a className="cursor-pointer ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white">
-                          {routeParams.city || "city"}
+                          {props.params.city || "city"}
                         </a>
                       </div>
                     </li>
@@ -177,10 +266,12 @@ export default function Page() {
                   return (
                     <div key={JSON.stringify(attorney)}>
                       <AttenoyCard
+                        showClicks={true}
+                        clicks={attorney.clicks}
                         imageUrl={attorney.image}
                         name={attorney.name}
                         phoneNumber={attorney.phone}
-                        location={routeParams.state}
+                        location={attorney.address}
                         email={attorney.email}
                         website={attorney.website}
                         description={attorney.description}
@@ -190,7 +281,9 @@ export default function Page() {
                   );
                 })}
               </section>
-              <span className="text-xl pt-10 underline">Ratings</span>
+              {data.reviews.length != 0 && (
+                <span className="text-xl pt-10 underline">Ratings</span>
+              )}
               <section className="overflow-x-auto mb-10">
                 <div className="mt-2 flex w-fit mb-2">
                   {data.reviews.map((reviews: any) => {
@@ -200,20 +293,19 @@ export default function Page() {
                           stars={reviews.stars}
                           created_at={new Date(
                             reviews.created_at
-                          ).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: '2-digit', 
-                            day: '2-digit', 
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
                           })}
                           user_created_at={new Date(
                             reviews.user_exists_from
-                          ).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: '2-digit', 
-                            day: '2-digit', 
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
                           })}
                           username={reviews.username}
-                          image={reviews.image}
                           content={reviews.content}
                         />
                       </div>
@@ -221,7 +313,9 @@ export default function Page() {
                   })}
                 </div>
               </section>
-              <span className="text-xl pt-10 underline">FAQ</span>
+              {data.faq.length != 0 && (
+                <span className="text-xl pt-10 underline">FAQ</span>
+              )}
               <section className="w-full mt-4">
                 {data.faq.map((faq: any) => {
                   return (
@@ -233,7 +327,10 @@ export default function Page() {
                   );
                 })}
               </section>
-              <span className="text-xl pt-10 underline">Embedded Videos</span>
+              {data.embedded_videos.length != 0 && (
+                <span className="text-xl pt-10 underline">Embedded Videos</span>
+              )}
+
               <section className="w-full pt-4 flex justify-center flex-col">
                 {data.embedded_videos.map((embedded_video: any) => {
                   return (
@@ -251,16 +348,31 @@ export default function Page() {
                   );
                 })}
               </section>
-              <span className="text-xl pt-10 underline">Articles</span>
+              {data.articles.length != 0 && (
+                <span className="text-xl pt-10 underline">Articles</span>
+              )}
+
               <section className="w-full text-center flex flex-col pt-4">
                 {data.articles.map((article: any) => {
                   return (
-                    <div key={`${JSON.stringify(article) + new Date().toISOString()}`}>
-                      <ArticleCard link={`/public/${routeParams.state}/${routeParams.city}/${article.slug}`} title={article.title} text={converter.makeHtml(article.text)} created={new Date(article.created_at).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: '2-digit', 
-                            day: '2-digit', 
-                          })} image={article.image} />
+                    <div
+                      key={`${
+                        JSON.stringify(article) + new Date().toISOString()
+                      }`}
+                    >
+                      <ArticleCard
+                        link={`/admin/${props.params.state}/${props.params.city}/${article.slug}`}
+                        title={article.title}
+                        text={converter.makeHtml(article.text)}
+                        created={new Date(
+                          article.created_at
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })}
+                        image={article.image}
+                      />
                     </div>
                   );
                 })}
@@ -270,9 +382,7 @@ export default function Page() {
                 <span className="">
                   ZIP CODES FOR PERSONAL INJURY LAW FIRMS
                 </span>
-                <span className="">
-                 {data.zips}
-                </span>
+                <span className="">{data.zips}</span>
               </section>
             </main>
           )}

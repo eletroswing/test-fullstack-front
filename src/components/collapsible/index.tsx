@@ -1,13 +1,15 @@
+/* eslint-disable react/no-unescaped-entities */
+"use client";
+
 import { useState } from "react";
 
-/* eslint-disable react/no-unescaped-entities */
 export default function Collapsible({ title, content }: any) {
   const [isOpen, setIsOpen] = useState<Boolean>(false);
 
   const handleClick = () => {
     setIsOpen(!isOpen);
-  };
 
+  };
   return (
     <div className="w-full">
       <button className="w-full text-left mb-4" onClick={handleClick}>

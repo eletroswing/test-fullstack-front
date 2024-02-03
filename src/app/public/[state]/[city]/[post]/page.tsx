@@ -1,29 +1,29 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
+/* eslint-disable @next/next/no-img-element */
+"use server";
 
 import Link from "next/link";
-import Script from "next/script";
 
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import constants from "@/constants";
 
 import showdown from "showdown";
+import { notFound } from "next/navigation";
 
-/* eslint-disable @next/next/no-img-element */
-export default function Page() {
-  const [data, setData] = useState<any>(null);
-  const routeParams = useParams();
+async function fetchData({ params }: any) {
+  const res = await fetch(
+    `${constants.API_URL}/public/${params.state}/${params.city}/${params.post}`,
+    { next: { revalidate: 5 } }
+  );
 
+  var json = await res.json();
+
+  if(res.status != 200) return notFound();
+
+  return json;
+}
+export default async function Page(props: any) {
+  const data = await fetchData(props)
   const converter = new showdown.Converter();
-
-  useEffect(() => {
-    fetch(
-      `${constants.API_URL}/public/${routeParams.state}/${routeParams.city}/${routeParams.post}`
-    )
-      .then((res) => res.json())
-      .then((res) => setData(res));
-  }, []);
 
   return (
     <main className="w-full pb-20 px-6 overflow-x-hidden mt-8">
@@ -49,7 +49,7 @@ export default function Page() {
             </li>
             <li>
               <Link
-                href={`/public/${routeParams.state}`}
+                href={`/public/${props.params.state}`}
                 className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
               >
                 <svg
@@ -67,7 +67,7 @@ export default function Page() {
                     d="m1 9 4-4-4-4"
                   />
                 </svg>
-                {routeParams.state || "Home"}
+                {props.params.state || "Home"}
               </Link>
             </li>
             <li>
@@ -88,10 +88,10 @@ export default function Page() {
                   />
                 </svg>
                 <Link
-                  href={`/public/${routeParams.state}/${routeParams.city}`}
+                  href={`/public/${props.params.state}/${props.params.city}`}
                   className="cursor-pointer ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
                 >
-                  {routeParams.city || "city"}
+                  {props.params.city || "city"}
                 </Link>
               </div>
             </li>
