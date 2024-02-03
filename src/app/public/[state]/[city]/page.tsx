@@ -13,12 +13,15 @@ import Script from "next/script";
 
 import showdown from "showdown";
 import constants from "@/constants";
+import { notFound } from "next/navigation";
 
 async function fetchData({ params }: any) {
   const res = await fetch(
     `${constants.API_URL}/public/${params.state}/${params.city}`,
     { next: { revalidate: 5 } }
   );
+
+    if(res.status != 200) return notFound()
 
   var json = await res.json();
 
@@ -43,7 +46,7 @@ async function fetchData({ params }: any) {
         "@type": "Person",
         name: "Jason Portagrande",
       },
-      url: `https://queroassistir.com/public/${params.state}/${params.city}/${article.slug}`,
+      url: `https://queroassistir.com/${params.state}/${params.city}/${article.slug}`,
     };
   });
 
@@ -76,7 +79,7 @@ async function fetchData({ params }: any) {
     itemReviewed: {
       "@type": "Organization",
       name: "Atternoy Listing",
-      sameAs: `https://queroassistir.com/public/${params.state}/${params.city}`,
+      sameAs: `https://queroassistir.com/${params.state}/${params.city}`,
     },
     ratingValue: reviewsEntity.rating,
     bestRating: reviewsEntity.best,
@@ -197,7 +200,7 @@ export default async function Page(props: any) {
                   <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                     <li className="inline-flex items-center">
                       <Link
-                        href={`/admin/`}
+                        href={`/public/`}
                         className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
                       >
                         <svg
@@ -214,7 +217,7 @@ export default async function Page(props: any) {
                     </li>
                     <li>
                       <Link
-                        href={`/admin/${props.params.state}`}
+                        href={`/public/${props.params.state}`}
                         className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
                       >
                         <svg
@@ -361,7 +364,7 @@ export default async function Page(props: any) {
                       }`}
                     >
                       <ArticleCard
-                        link={`/admin/${props.params.state}/${props.params.city}/${article.slug}`}
+                        link={`/public/${props.params.state}/${props.params.city}/${article.slug}`}
                         title={article.title}
                         text={converter.makeHtml(article.text)}
                         created={new Date(

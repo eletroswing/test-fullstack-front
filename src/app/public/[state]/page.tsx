@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
@@ -22,7 +23,7 @@ function Table({ data }: any) {
                 className="text-gray-700 hover:bg-gray-200 cursor-pointer w-full border text-center py-4 "
               >
                 <div>
-                  <span className="text-md text-center">{city.city}, {" "}</span>
+                  <span className="text-md text-center">{city.city}, </span>
                   <span className="text-md text-center">
                     {routeParams.state}
                   </span>
@@ -38,12 +39,17 @@ function Table({ data }: any) {
 
 export default function Page() {
   const [data, setData] = useState<any>(null);
+  const [notFound, setNotFound] = useState(false);
   const [page, setPage] = useState<number>(1);
 
   const routeParams = useParams();
 
   useEffect(() => {
     fetch(`${constants.API_URL}/public/${routeParams.state}?page=${page}`)
+      .then((res) => {
+        if (res.status != 200) setNotFound(true);
+        return res;
+      })
       .then((res) => res.json())
       .then((res) => setData(res));
   }, [page]);
@@ -124,115 +130,148 @@ export default function Page() {
         </div>
       ) : (
         <>
-          <Table data={data} />
-          <section className="pt-4">
-            <div className="flex flex-col items-center">
-              <span className="text-sm text-gray-700 dark:text-gray-400">
-                Showing page{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {page}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {data.total_pages}
-                </span>{" "}
-                Pages
-              </span>
-              <div className="inline-flex mt-2 xs:mt-0">
-                {page > 1 ? (
-                  <button
-                    className="flex cursor-pointer items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 rounded-s hover:bg-gray-400 hover:text-gray-200 dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600"
-                    onClick={() => {
-                      setData(null);
-                      setPage(page - 1);
-                    }}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5 me-2 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 5H1m0 0 4 4M1 5l4-4"
-                      />
-                    </svg>
-                    Prev
-                  </button>
-                ) : (
-                  <a className="flex items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 rounded-s  dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600">
-                    <svg
-                      className="w-3.5 h-3.5 me-2 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 5H1m0 0 4 4M1 5l4-4"
-                      />
-                    </svg>
-                    Prev
-                  </a>
-                )}
-
-                {page < data.total_pages ? (
-                  <button
-                    onClick={() => {
-                      setData(null);
-                      setPage(page + 1);
-                    }}
-                    className="flex items-center cursor-pointer justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 border-0 border-s border-gray-700 rounded-e hover:bg-gray-400 hover:text-gray-200 dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600"
-                  >
-                    Next
-                    <svg
-                      className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M1 5h12m0 0L9 1m4 4L9 9"
-                      />
-                    </svg>
-                  </button>
-                ) : (
-                  <a className="flex items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 border-0 border-s border-gray-700 rounded-e dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600">
-                    Next
-                    <svg
-                      className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M1 5h12m0 0L9 1m4 4L9 9"
-                      />
-                    </svg>
-                  </a>
-                )}
+          {notFound ? (
+            <div className="text-center">
+              <h1 className="mb-4 text-6xl font-semibold text-red-500">404</h1>
+              <p className="mb-4 text-lg text-gray-600">
+                Oops! Looks like you're lost.
+              </p>
+              <div className="animate-bounce">
+                <svg
+                  className="mx-auto h-16 w-16 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  ></path>
+                </svg>
               </div>
+              <p className="mt-4 text-gray-600">
+                Let's get you back{" "}
+                <Link href="/public/" className="text-blue-500">
+                  home
+                </Link>
+                .
+              </p>
             </div>
-          </section>
+          ) : (
+            <>
+              <Table data={data} />
+              <section className="pt-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-sm text-gray-700 dark:text-gray-400">
+                    Showing page{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {page}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {data.total_pages}
+                    </span>{" "}
+                    Pages
+                  </span>
+                  <div className="inline-flex mt-2 xs:mt-0">
+                    {page > 1 ? (
+                      <button
+                        className="flex cursor-pointer items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 rounded-s hover:bg-gray-400 hover:text-gray-200 dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600"
+                        onClick={() => {
+                          setData(null);
+                          setPage(page - 1);
+                        }}
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 me-2 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 5H1m0 0 4 4M1 5l4-4"
+                          />
+                        </svg>
+                        Prev
+                      </button>
+                    ) : (
+                      <a className="flex items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 rounded-s  dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600">
+                        <svg
+                          className="w-3.5 h-3.5 me-2 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 5H1m0 0 4 4M1 5l4-4"
+                          />
+                        </svg>
+                        Prev
+                      </a>
+                    )}
+
+                    {page < data.total_pages ? (
+                      <button
+                        onClick={() => {
+                          setData(null);
+                          setPage(page + 1);
+                        }}
+                        className="flex items-center cursor-pointer justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 border-0 border-s border-gray-700 rounded-e hover:bg-gray-400 hover:text-gray-200 dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600"
+                      >
+                        Next
+                        <svg
+                          className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M1 5h12m0 0L9 1m4 4L9 9"
+                          />
+                        </svg>
+                      </button>
+                    ) : (
+                      <a className="flex items-center justify-center px-4 h-10 text-base font-medium text-gray-600 bg-gray-300 border-0 border-s border-gray-700 rounded-e dark:bg-gray-300 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-600">
+                        Next
+                        <svg
+                          className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M1 5h12m0 0L9 1m4 4L9 9"
+                          />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </>
+          )}
         </>
       )}
     </main>
