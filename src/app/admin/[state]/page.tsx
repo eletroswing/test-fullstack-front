@@ -19,7 +19,7 @@ function Table({ data }: any) {
             return (
               <Link
                 key={`${(city.city, city.city_id)}`}
-                href={`/${routeParams.state}/${city.city_id}`}
+                href={`/admin/${routeParams.state}/${city.city_id}`}
                 className="text-gray-700 hover:bg-gray-200 cursor-pointer w-full border text-center py-4 "
               >
                 <div>
@@ -67,7 +67,7 @@ export default function Page() {
           <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
             <li className="inline-flex items-center">
               <Link
-                href={`/`}
+                href={`/admin/`}
                 className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
               >
                 <svg
@@ -153,7 +153,7 @@ export default function Page() {
               </div>
               <p className="mt-4 text-gray-600">
                 Let's get you back{" "}
-                <Link href="/" className="text-blue-500">
+                <Link href="/admin/" className="text-blue-500">
                   home
                 </Link>
                 .
