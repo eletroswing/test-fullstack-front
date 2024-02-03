@@ -96,6 +96,8 @@ export default async function Page(props: any) {
 
   return (
     <>
+      <Script src="https://www.tiktok.com/embed.js" id="tiktok" />
+
       {data.faq.length > 0 && (
         <Script
           id="structureFaq"
@@ -181,7 +183,6 @@ export default async function Page(props: any) {
             </div>
           ) : (
             <main className="w-full pb-20 px-6 overflow-x-hidden">
-              <Script src="https://www.tiktok.com/embed.js" />
               <header className="w-full relative">
                 <img
                   className="w-full h-[10rem]"

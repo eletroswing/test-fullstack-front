@@ -1,7 +1,7 @@
+"use client";
 /* eslint-disable @next/next/no-img-element */
 
 import {
-  BookmarkIcon,
   TelephoneIcon,
   MailIcon,
   ProfileIcon,
